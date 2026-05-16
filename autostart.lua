@@ -1,0 +1,28 @@
+hl.on("hyprland.start", function()
+    hl.exec_cmd("/home/busyo/.config/niri/script/import-kde-portal-env.sh")
+    hl.exec_cmd("wl-paste --watch cliphist store &")
+    hl.exec_cmd("usr/lib/pam_kwallet_init")
+    hl.exec_cmd("/usr/bin/kwalletd6")
+    hl.exec_cmd("dms run")
+    hl.exec_cmd("dsearch serve")
+    hl.exec_cmd("/home/busyo/.config/niri/script/clipboard_sync.sh")
+    hl.exec_cmd("kdeconnect-indicator")
+    -- hl.exec_cmd("awww-daemon")
+    hl.exec_cmd("rslsync")
+    -- apps
+    delay_run(1000, "gtk-launch steam")
+    delay_run(2000, "gtk-launch discord")
+    delay_run(3000, "gtk-launch qq")
+    delay_run(4000, "gtk-launch org.telegram.desktop.desktop")
+    delay_run(5000, "gtk-launch io.element.Element")
+    delay_run(6000, "gtk-launch vivaldi-stable")
+    delay_run(7000, "gtk-launch org.qbittorrent.qBittorrent")
+end)
+
+function delay_run(delay, cmd)
+    local demoTimer = hl.timer(function()
+        hl.exec_cmd(cmd)
+    end, { timeout = delay, type = "oneshot" })
+
+    demoTimer:set_enabled(true)
+end
