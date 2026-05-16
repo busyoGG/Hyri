@@ -8,6 +8,7 @@ local workspace = require("scripts.workspace")
 local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 local mainAlt = "ALT"
 local mainCtrl = "CTRL"
+local mainShift = "SHIFT"
 
 -- Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
 
@@ -41,6 +42,9 @@ end)
 hl.bind(mainCtrl .. " + " .. mainAlt .. " + mouse_up", function()
     workspace.move_window_to_workspace(false)
 end)
+
+hl.bind(mainMod .. " + F", workspace.max_width)
+-- hl.bind(mainCtrl .. "+" .. mainShift .. " + F", hl.dsp.layout("fit visible"))
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
@@ -107,3 +111,5 @@ hl.bind(mainAlt .. " + 3", function()
     hl.exec_cmd("notify-send 'Active Window Info' 'Class: " ..
         (window.class or "N/A") .. "\nTitle: " .. (window.title or "N/A") .. "'")
 end)
+
+-- hl.bind("mouse:272", workspace.drag_to_move, { mouse = true })

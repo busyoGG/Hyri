@@ -1,5 +1,7 @@
 local M = {}
 
+local cursor_pos
+
 local function get_workspaces_by_monitor(cur)
     local workspaces = hl.get_workspaces()
     local mon_workspaces = {}
@@ -75,6 +77,44 @@ function M.window_on_put()
     elseif cursor_pos.x > bound[2] then
         hl.dispatch(hl.dsp.layout("promote"))
     end
+end
+
+local width_for_windows = {}
+local max_width_timer
+function M.max_width()
+    local cur = hl.get_active_window()
+    if width_for_windows[cur.pid] then
+        if max_width_timer then
+            max_width_timer:set_enabled(false)
+            max_width_timer = nil
+            hl.dispatch(hl.dsp.window.resize({ x = width_for_windows[cur.pid], y = cur.size.y, window = cur }))
+
+            hl.dispatch(hl.dsp.layout("colresize 1.0"))
+        else
+            local step = (cur.size.x - width_for_windows[cur.pid]) / 20
+            max_width_timer = hl.timer(
+                function()
+                    hl.dispatch(hl.dsp.window.resize({ x = cur.size.x - step, y = cur.size.y, window = cur }))
+                end, { timeout = 10, type = "repeat" })
+
+            max_width_timer:set_enabled(true)
+
+            hl.timer(
+                function()
+                    max_width_timer:set_enabled(false)
+                    max_width_timer = nil
+                    hl.dispatch(hl.dsp.window.resize({ x = width_for_windows[cur.pid], y = cur.size.y, window = cur }))
+                    width_for_windows[cur.pid] = nil
+                end, { timeout = 200, type = "oneshot" })
+        end
+    else
+        width_for_windows[cur.pid] = cur.size.x
+        hl.dispatch(hl.dsp.layout("colresize 1.0"))
+    end
+end
+
+function M.drag_to_move()
+    hl.exec_cmd("notify-send 'Drag to move' --expire-time=1000")
 end
 
 return M
