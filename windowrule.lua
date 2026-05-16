@@ -66,12 +66,12 @@ hl.window_rule({
     name = "full-width",
     match = {
         class = regex({
+            "vivaldi-stable",
             "code",
             "^(firefox|firefox-developer-edition|org.mozilla.firefox)$",
             "mpv",
             -- "Unity",
             "jetbrains-rider",
-            "vivaldi-stable",
             "virt-manager",
             "steam_app_default",
         }),
@@ -94,6 +94,19 @@ hl.window_rule({
 })
 
 hl.window_rule({
+    name = "open-on-DP-2",
+    match = {
+        class = regex({
+            "vivaldi-stable",
+            "steam_app_default",
+            "steam_app_0",
+            "yuanshen.exe",
+        }),
+    },
+    monitor = "DP-2",
+})
+
+hl.window_rule({
     name = "games",
     match = {
         class = regex({
@@ -102,7 +115,6 @@ hl.window_rule({
             "yuanshen.exe",
         }),
     },
-    monitor = "DP-2",
     render_unfocused = true,
     sync_fullscreen = true,
     fullscreen = true,
