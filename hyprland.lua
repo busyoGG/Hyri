@@ -9,6 +9,8 @@
 -- Create your files separately and then require them like this:
 -- require("myColors")
 
+-- local workspace = require("scripts.workspace")
+
 hl.env("QT_QPA_PLATFORMTHEME", "kde")
 hl.env("XCURSOR_SIZE", "32")
 hl.env("HYPRCURSOR_SIZE", "32")
@@ -58,7 +60,7 @@ hl.permission("/usr/(bin|local/bin)/hyprpm", "plugin", "allow")
 -- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
 hl.config({
     general = {
-        gaps_in          = { top = 0, left = 0, right = 8, bottom = 0 },
+        gaps_in          = { top = 0, left = 5, right = 5, bottom = 0 },
         gaps_out         = 8,
 
         border_size      = 3,
@@ -123,8 +125,8 @@ hl.curve("dampening", { type = "spring", mass = 1, stiffness = 35, dampening = 8
 hl.animation({ leaf = "global", enabled = true, speed = 10, bezier = "default" })
 hl.animation({ leaf = "border", enabled = true, speed = 5.39, bezier = "easeOutQuint" })
 hl.animation({ leaf = "windows", enabled = true, speed = 4.79, spring = "dampening" })
--- hl.animation({ leaf = "windowsIn", enabled = true, speed = 4.1, spring = "easy", style = "popin 87%" })
--- hl.animation({ leaf = "windowsOut", enabled = true, speed = 1.49, bezier = "linear", style = "popin 87%" })
+hl.animation({ leaf = "windowsIn", enabled = true, speed = 4.1, bezier = "easeOutQuint" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 1.49, bezier = "easeOutQuint" })
 hl.animation({ leaf = "fadeIn", enabled = true, speed = 1.73, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeOut", enabled = true, speed = 1.46, bezier = "almostLinear" })
 hl.animation({ leaf = "fade", enabled = true, speed = 3.03, bezier = "quick" })
@@ -230,3 +232,6 @@ require("autostart")
 require("hotkey")
 require("windowrule")
 require("layerrule")
+
+
+-- workspace.on_window_open()
