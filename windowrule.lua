@@ -156,3 +156,12 @@ hl.window_rule({
     },
     float = true,
 })
+
+hl.window_rule({
+    match = {
+        class = "steam",
+        title = "^notificationtoasts_\\d+_desktop$",
+    },
+
+    move = { "monitor_w - window_w + 138", "monitor_h - window_h + 30" },
+})

@@ -1,50 +1,109 @@
 #!/bin/bash
+
 SELF_PID=$$
 
 ps -ef | grep clipboard_sync | grep -v grep | grep -v "$SELF_PID" | awk '{print $2}' | xargs -r kill
 
-# 下面放原来的脚本内容
-# --------------------
-# 防抖变量
-last_text=""
-last_img_hash=""
-temp_file_path="/tmp/sync-img"
-ext=""
+# =========================================================
+# 状态
+# =========================================================
 
-rm_temp_file(){
-    if [[ -f "$temp_file_path" ]]; then
-        rm $temp_file_path
+last_text_hash=""
+last_img_hash=""
+last_uri_hash=""
+
+temp_file_base="/tmp/sync-img"
+
+# =========================================================
+# utils
+# =========================================================
+
+hash_stdin() {
+    sha256sum | awk '{print $1}'
+}
+
+hash_file() {
+    sha256sum "$1" | awk '{print $1}'
+}
+
+is_file_uri() {
+    grep -q '^file://'
+}
+
+rm_temp_file() {
+    rm -f /tmp/sync-img.*
+}
+
+temp_file() {
+    echo "${temp_file_base}.${ext}"
+}
+
+# =========================================================
+# cliphist replay
+# =========================================================
+
+cliphist_replay() {
+
+    if ! wl-paste --list-types >/dev/null 2>&1; then
+
+        cliphist decode "$(cliphist list | head -n1 | awk '{print $1}')" | \
+            wl-copy
+
+        echo "cliphist replayed"
     fi
 }
 
-temp_file(){
-    echo "$temp_file_path.$ext"
-}
+# =========================================================
+# 主循环
+# =========================================================
 
-# X11 → Wayland 同步
 x11_to_wayland() {
+
     while true; do
-        # ------- 判断wayland是否复制图片，是则删除x11复制的临时图片 -------
-        if [[ -f "$temp_file_path" ]]; then
-            clip_types=$(wl-paste --list-types 2>/dev/null || true)
-            if [[ "$clip_types" == *"image/png"* ]] || [[ "$clip_types" == *"image/jpeg"* ]]; then
+
+        # -------------------------------------------------
+        # Wayland 已不是图片/文件时
+        # 删除旧图片缓存
+        # -------------------------------------------------
+
+        wl_types=$(wl-paste --list-types 2>/dev/null || true)
+
+        if ls /tmp/sync-img.* >/dev/null 2>&1; then
+
+            if [[ "$wl_types" != *"image/png"* ]] &&
+               [[ "$wl_types" != *"text/uri-list"* ]]; then
                 rm_temp_file
             fi
         fi
 
-        # -------- 图片 --------
-        if xclip -selection clipboard -t TARGETS -o 2>/dev/null | grep -q "image/png"; then
-            if [[ $(xclip -selection clipboard -t image/png -o 2>/dev/null | wc -c) -gt 0 ]]; then
-                x11_img_hash=$(xclip -selection clipboard -t image/png -o | sha256sum | awk '{print $1}')
-                if [[ -f "$temp_file_path" ]]; then
-                    img_file_hash=$(sha256sum "$temp_file_path" | awk '{print $1}')
-                else
-                    img_file_hash=""
-                fi
+        # -------------------------------------------------
+        # 获取 x11 targets
+        # -------------------------------------------------
 
-                if [[ -n "$x11_img_hash" && "$x11_img_hash" != "$img_file_hash" ]]; then
-                    xclip -selection clipboard -t image/png -o > $temp_file_path
-                    magic=$(head -c 12 "$temp_file_path" | xxd -p)
+        x11_targets=$(xclip -selection clipboard -t TARGETS -o 2>/dev/null || true)
+
+        # =================================================
+        # 图片同步
+        # =================================================
+
+        if echo "$x11_targets" | grep -q "image/png"; then
+
+            TMP_IMG="/tmp/x11-clipboard-img"
+
+            rm -f "$TMP_IMG"
+
+            xclip -selection clipboard \
+                -t image/png \
+                -o > "$TMP_IMG" 2>/dev/null
+
+            if [[ -s "$TMP_IMG" ]]; then
+
+                x11_img_hash=$(hash_file "$TMP_IMG")
+
+                if [[ "$x11_img_hash" != "$last_img_hash" ]]; then
+
+                    magic=$(head -c 12 "$TMP_IMG" | xxd -p)
+
                     case "$magic" in
                         89504e470d0a1a0a*) ext="png" ;;
                         474946383761*|474946383961*) ext="gif" ;;
@@ -52,50 +111,144 @@ x11_to_wayland() {
                         52494646*) ext="webp" ;;
                         *) ext="bin" ;;
                     esac
+
                     path=$(temp_file)
-                    echo  "$path"
-                    mv "$temp_file_path" "$path"
-                    echo -n "file://$path" | wl-copy -t text/uri-list
+
+                    mv "$TMP_IMG" "$path"
+
+                    printf 'file://%s\r\n' "$path" | \
+                        wl-copy -t text/uri-list
+
+                    last_img_hash="$x11_img_hash"
+
+                    echo "x11 image -> wl"
                 fi
-                xclip -selection clipboard  -i /dev/null
             fi
         fi
 
-        # -------- 文本 --------
-        current_text=$(wl-paste --type text/plain 2>/dev/null || true)
-        x11_text=$(xclip -selection clipboard -o 2>/dev/null || true)
+        # =================================================
+        # 文件同步
+        # =================================================
 
-        if [[ -n "$x11_text" && "$x11_text" != "$last_text" && "$x11_text" != "$current_text" ]]; then
-            echo -n "$x11_text" | wl-copy --type text/plain
-            last_text="$x11_text"
-            current_text=$(wl-paste --type text/plain 2>/dev/null || true)
-            echo "copy to wl $(wl-paste)"
+        x11_uri=$(xclip -selection clipboard \
+            -t text/uri-list \
+            -o 2>/dev/null || true)
+
+        wl_uri=$(wl-paste \
+            --type text/uri-list 2>/dev/null || true)
+
+        # -------------------------------------------------
+        # X11 -> WL
+        # -------------------------------------------------
+
+        if echo "$x11_uri" | is_file_uri; then
+
+            uri_hash=$(printf "%s" "$x11_uri" | hash_stdin)
+
+            if [[ "$uri_hash" != "$last_uri_hash" &&
+                  "$x11_uri" != "$wl_uri" ]]; then
+
+                printf "%s" "$x11_uri" | \
+                    wl-copy -t text/uri-list
+
+                last_uri_hash="$uri_hash"
+
+                echo "x11 file -> wl"
+            fi
         fi
 
-        if [[ -n "$current_text" && "$current_text" != "$last_text" && "$x11_text" != "$current_text" ]]; then
-            echo "$current_text" | xclip -selection clipboard -t UTF8_STRING -i
-            last_text="$current_text"
-            echo "copy to x11 $(xclip -selection clipboard -o)"
+        # -------------------------------------------------
+        # WL -> X11
+        # -------------------------------------------------
+
+        if echo "$wl_uri" | is_file_uri; then
+
+            uri_hash=$(printf "%s" "$wl_uri" | hash_stdin)
+
+            if [[ "$uri_hash" != "$last_uri_hash" &&
+                  "$wl_uri" != "$x11_uri" ]]; then
+
+                printf "%s" "$wl_uri" | \
+                    xclip -selection clipboard \
+                    -t text/uri-list -i
+
+                last_uri_hash="$uri_hash"
+
+                echo "wl file -> x11"
+            fi
+        fi
+
+        # =================================================
+        # 文本同步
+        # =================================================
+
+        current_text=$(wl-paste \
+            --type text/plain 2>/dev/null || true)
+
+        x11_text=$(xclip \
+            -selection clipboard \
+            -o 2>/dev/null || true)
+
+        # 跳过 file uri
+        if echo "$current_text" | is_file_uri; then
+            current_text=""
+        fi
+
+        if echo "$x11_text" | is_file_uri; then
+            x11_text=""
+        fi
+
+        # -------------------------------------------------
+        # X11 -> WL
+        # -------------------------------------------------
+
+        if [[ -n "$x11_text" &&
+              "$x11_text" != "$current_text" ]]; then
+
+            text_hash=$(printf "%s" "$x11_text" | hash_stdin)
+
+            if [[ "$text_hash" != "$last_text_hash" ]]; then
+
+                printf "%s" "$x11_text" | \
+                    wl-copy --type text/plain
+
+                last_text_hash="$text_hash"
+
+                echo "copy to wl"
+            fi
+        fi
+
+        # -------------------------------------------------
+        # WL -> X11
+        # -------------------------------------------------
+
+        if [[ -n "$current_text" &&
+              "$x11_text" != "$current_text" ]]; then
+
+            text_hash=$(printf "%s" "$current_text" | hash_stdin)
+
+            if [[ "$text_hash" != "$last_text_hash" ]]; then
+
+                printf "%s" "$current_text" | \
+                    xclip -selection clipboard \
+                    -t UTF8_STRING -i
+
+                last_text_hash="$text_hash"
+
+                echo "copy to x11"
+            fi
         fi
 
         cliphist_replay
 
-        sleep 0.5
+        sleep 0.3
     done
 }
 
-# wl_paste_watcher(){
-#     wl-paste --watch bash -c 'cliphist decode $(cliphist list | head -n1) | wl-copy' >/dev/null 2>&1 &
-# }
+# =========================================================
+# 启动
+# =========================================================
 
-cliphist_replay(){
-    if ! wl-paste --list-types >/dev/null 2>&1; then
-        cliphist decode $(cliphist list | head -n1) | wl-copy
-        echo "cliphist replayed"
-    fi
-}
-
-# 启动同步服务
-# wl_paste_watcher
 x11_to_wayland
+
 rm_temp_file

@@ -139,7 +139,7 @@ hl.animation({ leaf = "workspaces", enabled = true, speed = 3, spring = "dampeni
 -- hl.animation({ leaf = "workspacesIn", enabled = true, speed = 1.21, bezier = "almostLinear", style = "fade" })
 -- hl.animation({ leaf = "workspacesOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "fade" })
 hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" })
-hl.animation({ leaf = "borderangle", enabled = true, speed = 20, bezier = "linear", style = "loop" })
+-- hl.animation({ leaf = "borderangle", enabled = true, speed = 20, bezier = "linear", style = "loop" })
 
 -- See https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/ for more
 hl.config({
@@ -216,11 +216,12 @@ hl.config({
     },
 })
 
-hl.config({
-    xwayland = {
-        force_zero_scaling = true,
-    }
-})
+-- hl.config({
+--     xwayland = {
+--         enabled = false,
+--         force_zero_scaling = true,
+--     }
+-- })
 
 hl.gesture({
     fingers = 3,

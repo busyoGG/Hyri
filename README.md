@@ -6,6 +6,8 @@
 
 ## 功能
 
+> 因自身需求，xwayland 实现替换为 xwayland-satellite，不需要的自行修改
+
 * 截图：区域截图，屏幕截图，多屏截图，二维码扫描
 * 每屏幕动态工作区切换，复刻 Niri 交互手感
 * 窗口宽度切换 1.0 和原列宽（窗口宽度 - 全屏宽度）
@@ -21,3 +23,5 @@
 * slurp
 * grim
 * zbarimg
+* satty
+* ydotool
