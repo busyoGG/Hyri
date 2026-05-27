@@ -1,6 +1,3 @@
-local function regex(list)
-    return table.concat(list, "|")
-end
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------
@@ -10,20 +7,42 @@ end
 
 -- Example window rules that are useful
 
-local suppressMaximizeRule = hl.window_rule({
-    -- Ignore maximize requests from all apps. You'll probably like this.
-    name            = "all classes",
-    match           = { class = ".*" },
+local function rule(name, match, properties)
+    for index, value in ipairs(match) do
+        local opts = {
+            name = name .. "-" .. index,
+            match = value,
+        }
 
-    suppress_event  = "maximize",
-    persistent_size = true,
-})
--- suppressMaximizeRule:set_enabled(false)
+        -- 合并 properties
+        for k, v in pairs(properties or {}) do
+            opts[k] = v
+        end
 
-hl.window_rule({
-    -- Fix some dragging issues with XWayland
-    name     = "fix-xwayland-drags",
-    match    = {
+        hl.window_rule(opts)
+    end
+end
+
+-- 辅助函数：处理各种输入格式
+local function matches(...)
+    local result = {}
+    local args = { ... }
+
+    for _, arg in ipairs(args) do
+        if type(arg) == "string" then
+            -- 字符串 -> class
+            table.insert(result, { class = arg })
+        elseif type(arg) == "table" then
+            -- 直接保留 table（包括复合条件）
+            table.insert(result, arg)
+        end
+    end
+
+    return result
+end
+
+rule("fix-xwayland-drags", {
+    {
         class      = "^$",
         title      = "^$",
         xwayland   = true,
@@ -31,90 +50,65 @@ hl.window_rule({
         fullscreen = false,
         pin        = false,
     },
-
+}, {
     no_focus = true,
 })
 
-hl.window_rule({
-    name = "opacity-0.8",
-    match = {
-        class = table.concat({
-            "com.mitchellh.ghostty",
-            "org.kde.konsole",
-        }, "|"),
-    },
+rule("opacity-0.8", matches(
+    "com.mitchellh.ghostty",
+    "org.kde.konsole"
+), {
     opacity = 0.8,
 })
 
-hl.window_rule({
-    name = "opacity-0.9",
-    match = {
-        class = table.concat({
-            "obsidian",
-            "discord",
-            "kate",
-            "QQ",
-            "dolphin",
-            "btrfs-assistant",
-            "Element",
-        }, "|"),
-    },
+rule("opacity-0.9", matches(
+    "obsidian",
+    "discord",
+    "kate",
+    "QQ",
+    "dolphin",
+    "btrfs-assistant",
+    "Element"
+), {
     opacity = 0.9,
 })
 
-hl.window_rule({
-    name = "full-width",
-    match = {
-        class = regex({
-            "vivaldi-stable",
-            "code",
-            "^(firefox|firefox-developer-edition|org.mozilla.firefox)$",
-            "mpv",
-            -- "Unity",
-            "jetbrains-rider",
-            "virt-manager",
-            "steam_app_default",
-        }),
-    },
+rule("full-width", matches(
+    "vivaldi-stable",
+    "code",
+    "^(firefox|firefox-developer-edition|org.mozilla.firefox)$",
+    "mpv",
+    "jetbrains-rider",
+    "virt-manager",
+    "steam_app_default"
+), {
     scrolling_width = 1.0,
 })
 
-hl.window_rule({
-    name = "open-on-DP-3",
-    match = {
-        class = regex({
-            "discord",
-            "QQ",
-            "org.telegram.desktop",
-            "Element",
-            "wechat",
-        }),
-    },
+rule("open-on-DP-3", matches(
+    "discord",
+    "QQ",
+    "org.telegram.desktop",
+    "Element",
+    "wechat"
+), {
     monitor = "DP-3",
 })
 
-hl.window_rule({
-    name = "open-on-DP-2",
-    match = {
-        class = regex({
-            "vivaldi-stable",
-            "steam_app_default",
-            "steam_app_0",
-            "yuanshen.exe",
-        }),
-    },
+rule("open-on-DP-2", matches(
+    "vivaldi-stable",
+    "steam_app_default",
+    "steam_app_0",
+    "yuanshen.exe"
+), {
     monitor = "DP-2",
 })
 
-hl.window_rule({
-    name = "games",
-    match = {
-        class = regex({
-            "steam_app_default",
-            "steam_app_0",
-            "yuanshen.exe",
-        }),
-    },
+rule("games", matches(
+    "steam_app_default",
+    "steam_app_0",
+    "yuanshen.exe"
+), {
     render_unfocused = true,
     sync_fullscreen = true,
     fullscreen = true,
@@ -123,56 +117,28 @@ hl.window_rule({
     focus_on_activate = false,
 })
 
-hl.window_rule({
-    name = "floating",
-    match = {
-        class = regex({
-            "satty",
-            "org.kde.kcalc",
-            "org.kde.ark",
-            "org.kde.kdeconnect.daemon",
-            "showmethekey-gtk"
-        }),
-    },
-    float = true,
-})
-
-hl.window_rule({
-    name = "no-floating",
-    match = {
-        class = regex({
-            "QQ",
-        }),
-    },
+rule("no-floating", matches(
+    "QQ"
+), {
     float = false,
 })
 
-hl.window_rule({
-    name = "floating-QQ",
-    match = {
-        title = table.concat({
-            "天气",
-            "资料卡",
-        }, "|"),
-    },
+-- 注意：复合条件 { class = "QQ", title = "xxx" } 会为每个 title 创建独立的规则
+rule("floating", matches(
+    "satty",
+    "org.kde.kcalc",
+    "org.kde.ark",
+    "org.kde.kdeconnect.daemon",
+    "showmethekey-gtk",
+    { class = "QQ", title = "天气|资料卡" },
+    { class = "steam", title = "好友列表" }
+), {
     float = true,
 })
 
-hl.window_rule({
-    match = {
-        class = "steam",
-        title = "^notificationtoasts_\\d+_desktop$",
-    },
-
-    move = { "monitor_w - window_w + 138", "monitor_h - window_h + 30" },
-})
-
-hl.window_rule({
-    name = "米哈游启动器",
-    match = {
-        class = "steam_app_default",
-        title = "米哈游启动器"
-    },
+rule("mihoyo-launcher", matches(
+    { class = "steam_app_default", title = "米哈游启动器" }
+), {
     render_unfocused = true,
     fullscreen = false,
     confine_pointer = false,

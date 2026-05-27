@@ -2,6 +2,7 @@ hl.on("hyprland.start", function()
     -- Exec("xwayland-satellite &")
     -- Exec(
     --     "xprop -root -f _XWAYLAND_GLOBAL_OUTPUT_SCALE 32c -set _XWAYLAND_GLOBAL_OUTPUT_SCALE 2000")
+    Exec("hyprpm reload")
     Exec("xprop -root -format _XWAYLAND_GLOBAL_OUTPUT_SCALE 32c -set _XWAYLAND_GLOBAL_OUTPUT_SCALE 2")
     Exec("echo \"Xft.dpi: 192\" | xrdb -merge")
 
