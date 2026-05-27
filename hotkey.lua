@@ -23,27 +23,28 @@ hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + left", hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
 
-hl.bind(mainMod .. " + mouse_down", hl.dsp.layout("focus l"))
-hl.bind(mainMod .. " + mouse_up", hl.dsp.layout("focus r"))
+hl.bind(mainMod .. " + mouse_down", hl.dsp.layout("focus r"))
+hl.bind(mainMod .. " + mouse_up", hl.dsp.layout("focus l"))
 
 hl.bind(mainAlt .. " + mouse_down", function()
-    workspace.change_workspace(true)
-end)
-hl.bind(mainAlt .. " + mouse_up", function()
     workspace.change_workspace(false)
 end)
+hl.bind(mainAlt .. " + mouse_up", function()
+    workspace.change_workspace(true)
+end)
 
-hl.bind(mainCtrl .. " + " .. mainMod .. " + mouse_down", hl.dsp.layout("swapcol l"))
-hl.bind(mainCtrl .. " + " .. mainMod .. " + mouse_up", hl.dsp.layout("swapcol r"))
+hl.bind(mainCtrl .. " + " .. mainMod .. " + mouse_down", hl.dsp.layout("swapcol r"))
+hl.bind(mainCtrl .. " + " .. mainMod .. " + mouse_up", hl.dsp.layout("swapcol l"))
 
 hl.bind(mainCtrl .. " + " .. mainAlt .. " + mouse_down", function()
-    workspace.move_window_to_workspace(true)
+    workspace.move_window_to_workspace(false)
 end)
 hl.bind(mainCtrl .. " + " .. mainAlt .. " + mouse_up", function()
-    workspace.move_window_to_workspace(false)
+    workspace.move_window_to_workspace(true)
 end)
 
 hl.bind(mainMod .. " + F", workspace.max_width)
+hl.bind(mainCtrl .. " + " .. mainShift .. " + F", hl.dsp.window.fullscreen({ action = "toggle" }))
 -- hl.bind(mainCtrl .. "+" .. mainShift .. " + F", hl.dsp.layout("fit visible"))
 
 -- Switch workspaces with mainMod + [0-9]
@@ -99,7 +100,7 @@ hl.bind(mainAlt .. " + print", shot.active_shot)
 hl.bind(mainMod .. " + E", function()
     shot.edit("方正FW筑紫A圆 简 E")
 end)
-
+hl.bind("F9", hl.dsp.exec_cmd("/home/busyo/.config/niri/script/kill_to_save_rec.sh"))
 
 -- ocr
 hl.bind(mainAlt .. " + 1", hl.dsp.exec_cmd("~/.config/hypr/scripts/shot/ocr.sh"))

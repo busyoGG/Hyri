@@ -120,6 +120,7 @@ hl.window_rule({
     fullscreen = true,
     fullscreen_state = 2,
     confine_pointer = false,
+    focus_on_activate = false,
 })
 
 hl.window_rule({
@@ -164,4 +165,15 @@ hl.window_rule({
     },
 
     move = { "monitor_w - window_w + 138", "monitor_h - window_h + 30" },
+})
+
+hl.window_rule({
+    name = "米哈游启动器",
+    match = {
+        class = "steam_app_default",
+        title = "米哈游启动器"
+    },
+    render_unfocused = true,
+    fullscreen = false,
+    confine_pointer = false,
 })

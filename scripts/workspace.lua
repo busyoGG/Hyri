@@ -15,6 +15,15 @@ local function get_width_ratio(cur)
     return cur.size.x / max_width
 end
 
+local function get_height_ratio(cur)
+    local mon = hl.get_monitor(cur.monitor)
+    local gaps_out = hl.get_config("general.gaps_out")
+    local border_size = hl.get_config("general.border_size")
+
+    local max_height = mon.size.height / mon.scale - gaps_out.top * 2 - border_size * 2
+    return cur.size.y / max_height
+end
+
 local function get_workspaces_by_monitor(cur)
     local workspaces = hl.get_workspaces()
     local mon_workspaces = {}
@@ -45,15 +54,13 @@ function M.change_workspace(prev)
             hl.dispatch(hl.dsp.focus({ workspace = mon_workspaces[i - 1] }))
         end
     else
-        if cur.windows > 0 then
-            if prev then
-                hl.dispatch(hl.dsp.focus({ workspace = 'm-1' }))
+        if prev then
+            hl.dispatch(hl.dsp.focus({ workspace = 'm-1' }))
+        else
+            if i == #mon_workspaces then
+                hl.dispatch(hl.dsp.focus({ workspace = 'r+1' }))
             else
-                if i == #mon_workspaces then
-                    hl.dispatch(hl.dsp.focus({ workspace = 'r+1' }))
-                else
-                    hl.dispatch(hl.dsp.focus({ workspace = mon_workspaces[i + 1] }))
-                end
+                hl.dispatch(hl.dsp.focus({ workspace = mon_workspaces[i + 1] }))
             end
         end
     end
@@ -68,26 +75,33 @@ function M.move_window_to_workspace(prev)
             hl.dispatch(hl.dsp.window.move({ workspace = mon_workspaces[i - 1] }))
         end
     else
-        if cur.windows > 1 then
-            if prev then
-                hl.dispatch(hl.dsp.window.move({ workspace = 'm-1' }))
+        if prev then
+            hl.dispatch(hl.dsp.window.move({ workspace = 'm-1' }))
+        else
+            if i == #mon_workspaces then
+                hl.dispatch(hl.dsp.window.move({ workspace = 'r+1' }))
             else
-                if i == #mon_workspaces then
-                    hl.dispatch(hl.dsp.window.move({ workspace = 'r+1' }))
-                else
-                    hl.dispatch(hl.dsp.window.move({ workspace = mon_workspaces[i + 1] }))
-                end
+                hl.dispatch(hl.dsp.window.move({ workspace = mon_workspaces[i + 1] }))
             end
         end
     end
 end
 
-local ratio_for_windows = {}
+local ratio_for_windows
 
 function M.window_on_drag()
     local active_window = hl.get_active_window()
-    local ratio = get_width_ratio(active_window)
-    ratio_for_windows[active_window.pid] = ratio
+    if not ratio_for_windows then
+        --     ratio = ratio_for_windows[active_window.pid]
+        -- else
+        if get_height_ratio(active_window) >= 0.99 then
+            ratio_for_windows = get_width_ratio(active_window)
+        else
+            ratio_for_windows = 0.5
+        end
+    end
+
+    -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
 
     hl.dispatch(hl.dsp.window.drag())
 end
@@ -95,7 +109,6 @@ end
 function M.window_on_put()
     local cursor_pos = hl.get_cursor_pos()
     local active_window = hl.get_active_window()
-    local ratio = ratio_for_windows[active_window.pid]
 
     local bound = { active_window.at.x + active_window.size.x * 0.25, active_window.at.x + active_window.size.x * 0.75 }
 
@@ -106,7 +119,8 @@ function M.window_on_put()
         hl.dispatch(hl.dsp.layout("promote"))
     end
 
-    hl.dispatch(hl.dsp.layout("colresize " .. ratio))
+    hl.dispatch(hl.dsp.layout("colresize " .. ratio_for_windows))
+    ratio_for_windows = nil
 end
 
 local width_for_windows = {}
