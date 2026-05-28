@@ -6,6 +6,14 @@ local FILENAME = "screenshot-" .. os.date("%Y-%m-%d_%H-%M-%S") .. ".png"
 
 local SCREENSHOT_PATH = TPATH .. "/" .. FILENAME
 
+local function delay(func, delay)
+    local demoTimer = hl.timer(function()
+        func()
+    end, { timeout = delay, type = "oneshot" })
+
+    demoTimer:set_enabled(true)
+end
+
 local function update_filename()
     FILENAME = "screenshot-" .. os.date("%Y-%m-%d_%H-%M-%S") .. ".png"
     SCREENSHOT_PATH = TPATH .. "/" .. FILENAME
@@ -22,8 +30,43 @@ local function set_mark()
     hl.exec_cmd("echo " .. SCREENSHOT_PATH .. " " .. SCALE .. " > " .. FLAG_FILE)
 end
 
-function shot.active_shot()
+local function shot_without_dynamic_cursor(cmd)
+    hl.config { plugin = { dynamic_cursors = { enabled = false } } }
+    local pos = hl.get_cursor_pos()
+    hl.dispatch(hl.dsp.cursor.move(pos))
+
     update_filename()
+    hl.exec_cmd(cmd)
+    set_mark()
+
+    delay(function()
+        hl.config { plugin = { dynamic_cursors = { enabled = true } } }
+    end, 50)
+end
+
+function shot.get_window()
+    hl.exec_cmd("slurp -p > /tmp/slurp_result.txt")
+
+    local timer = hl.timer(function()
+        local f = io.open("/tmp/slurp_result.txt", "r")
+        local x, y
+        if f then
+            local result = f:read("*a")
+            f:close()
+            if result and result ~= "" then
+                -- 坐标格式："x y"
+                x, y = result:match("(%d+),(%d+)%s+(%d+)x(%d+)")
+                if x and y then
+                    hl.exec_cmd("notify-send 'Screenshot' 'x,y " .. x .. "," .. y .. "'")
+                end
+                timer:set_enabled(false)
+            end
+        end
+    end, { timeout = 100, type = "repeat" })
+    timer:set_enabled(true)
+end
+
+function shot.active_shot()
     local window = hl.get_active_window()
     local pos = window.at
     local size = window.size
@@ -37,12 +80,10 @@ function shot.active_shot()
         SCREENSHOT_PATH
     )
 
-    hl.exec_cmd(cmd)
-    set_mark()
+    shot_without_dynamic_cursor(cmd)
 end
 
 function shot.area_shot()
-    update_filename()
     local after_freeze_cmd = {
         "grim",
         "-l 2",
@@ -59,12 +100,10 @@ function shot.area_shot()
         string.format("'%s'", table.concat(after_freeze_cmd, " ")),
     }, " ")
 
-    hl.exec_cmd(cmd)
-    set_mark()
+    shot_without_dynamic_cursor(cmd)
 end
 
 function shot.screen_shot(all)
-    update_filename()
     local cmd
 
     if all then
@@ -77,8 +116,7 @@ function shot.screen_shot(all)
         )
     end
 
-    hl.exec_cmd(cmd)
-    set_mark()
+    shot_without_dynamic_cursor(cmd)
 end
 
 function shot.edit(font_family)

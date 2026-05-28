@@ -27,3 +27,5 @@
 * zbarimg
 * satty
 * ydotool
+* hyprland-preview-share-picker-matugen-theme
+* dynamic-cursors

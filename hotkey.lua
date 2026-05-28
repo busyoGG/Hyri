@@ -103,8 +103,12 @@ end)
 hl.bind("F9", hl.dsp.exec_cmd("/home/busyo/.config/niri/script/kill_to_save_rec.sh"))
 
 -- ocr
-hl.bind(mainAlt .. " + 1", hl.dsp.exec_cmd("~/.config/hypr/scripts/shot/ocr.sh"))
-hl.bind(mainAlt .. " + 2", hl.dsp.exec_cmd("~/.config/hypr/scripts/shot/qrcode.sh"))
+hl.bind(mainAlt .. " + 1", function()
+    shot_without_dynamic_cursor("~/.config/hypr/scripts/shot/ocr.sh")
+end)
+hl.bind(mainAlt .. " + 2", function()
+    shot_without_dynamic_cursor("~/.config/hypr/scripts/shot/qrcode.sh")
+end)
 
 -- test
 hl.bind(mainAlt .. " + 3", function()
@@ -113,4 +117,29 @@ hl.bind(mainAlt .. " + 3", function()
         (window.class or "N/A") .. "\nTitle: " .. (window.title or "N/A") .. "'")
 end)
 
+hl.bind(mainAlt .. " + 4", function()
+    shot.get_window()
+end)
+
 -- hl.bind("mouse:272", workspace.drag_to_move, { mouse = true })
+
+-- sub function
+function delay(func, delay)
+    local demoTimer = hl.timer(function()
+        func()
+    end, { timeout = delay, type = "oneshot" })
+
+    demoTimer:set_enabled(true)
+end
+
+function shot_without_dynamic_cursor(cmd)
+    hl.config { plugin = { dynamic_cursors = { enabled = false } } }
+    local pos = hl.get_cursor_pos()
+    hl.dispatch(hl.dsp.cursor.move(pos))
+
+    hl.exec_cmd(cmd)
+
+    delay(function()
+        hl.config { plugin = { dynamic_cursors = { enabled = true } } }
+    end, 50)
+end

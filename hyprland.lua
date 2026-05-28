@@ -187,7 +187,7 @@ hl.config({
     },
     render = {
         use_fp16 = 0,
-    }
+    },
 })
 
 hl.config({
@@ -203,6 +203,7 @@ hl.gesture({
     direction = "horizontal",
     action = "workspace"
 })
+
 
 require("autostart")
 require("hotkey")

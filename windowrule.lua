@@ -104,6 +104,14 @@ rule("open-on-DP-2", matches(
     monitor = "DP-2",
 })
 
+rule("mihoyo-launcher", matches(
+    { class = "steam_app_default", title = "米哈游启动器" }
+), {
+    render_unfocused = true,
+    fullscreen = false,
+    confine_pointer = false,
+})
+
 rule("games", matches(
     "steam_app_default",
     "steam_app_0",
@@ -134,12 +142,4 @@ rule("floating", matches(
     { class = "steam", title = "好友列表" }
 ), {
     float = true,
-})
-
-rule("mihoyo-launcher", matches(
-    { class = "steam_app_default", title = "米哈游启动器" }
-), {
-    render_unfocused = true,
-    fullscreen = false,
-    confine_pointer = false,
 })
