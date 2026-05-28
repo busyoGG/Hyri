@@ -2,10 +2,6 @@ local shot = {}
 
 local TPATH = "/tmp"
 
-local FILENAME = "screenshot-" .. os.date("%Y-%m-%d_%H-%M-%S") .. ".png"
-
-local SCREENSHOT_PATH = TPATH .. "/" .. FILENAME
-
 local function delay(func, delay)
     local demoTimer = hl.timer(function()
         func()
@@ -14,20 +10,21 @@ local function delay(func, delay)
     demoTimer:set_enabled(true)
 end
 
-local function update_filename()
-    FILENAME = "screenshot-" .. os.date("%Y-%m-%d_%H-%M-%S") .. ".png"
-    SCREENSHOT_PATH = TPATH .. "/" .. FILENAME
+local function get_screenshot_path()
+    local filename = "screenshot-" .. os.date("%Y-%m-%d_%H-%M-%S") .. ".png"
+    local path = TPATH .. "/" .. filename
+    return path
 end
 
 local function set_mark()
-    local cmd = string.format("echo -n 'file://%s' | wl-copy -t text/uri-list", SCREENSHOT_PATH)
+    local cmd = string.format("echo -n 'file://%s' | wl-copy -t text/uri-list", get_screenshot_path())
     -- hl.exec_cmd("notify-send 'Screenshot taken' 'Saved to " .. cmd .. "'")
     hl.exec_cmd(cmd)
 
     local FLAG_FILE = '/tmp/screenshot-path'
     local SCALE = hl.get_active_monitor().scale
 
-    hl.exec_cmd("echo " .. SCREENSHOT_PATH .. " " .. SCALE .. " > " .. FLAG_FILE)
+    hl.exec_cmd("echo " .. get_screenshot_path() .. " " .. SCALE .. " > " .. FLAG_FILE)
 end
 
 local function shot_without_dynamic_cursor(cmd)
@@ -35,7 +32,6 @@ local function shot_without_dynamic_cursor(cmd)
     local pos = hl.get_cursor_pos()
     hl.dispatch(hl.dsp.cursor.move(pos))
 
-    update_filename()
     hl.exec_cmd(cmd)
     set_mark()
 
@@ -77,7 +73,7 @@ function shot.active_shot()
         pos.y,
         size.x,
         size.y,
-        SCREENSHOT_PATH
+        get_screenshot_path()
     )
 
     shot_without_dynamic_cursor(cmd)
@@ -88,7 +84,7 @@ function shot.area_shot()
         "grim",
         "-l 2",
         [[-g "$(slurp)"]],
-        SCREENSHOT_PATH .. ";",
+        get_screenshot_path() .. ";",
         "killall wayfreeze",
     }
 
@@ -107,12 +103,12 @@ function shot.screen_shot(all)
     local cmd
 
     if all then
-        cmd = string.format("grim %s", SCREENSHOT_PATH)
+        cmd = string.format("grim %s", get_screenshot_path())
     else
         cmd = string.format(
             "grim -l 2 -o %s %s",
             hl.get_active_monitor().name,
-            SCREENSHOT_PATH
+            get_screenshot_path()
         )
     end
 
