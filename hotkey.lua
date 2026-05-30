@@ -96,35 +96,38 @@ hl.bind(mainCtrl .. " + print", function()
 end)
 hl.bind(mainCtrl .. " + " .. mainAlt .. " + A", shot.area_shot)
 hl.bind(mainAlt .. " + print", shot.active_shot)
+hl.bind(mainShift .. " + print", shot.pick_window)
 
 hl.bind(mainMod .. " + E", function()
     shot.edit("方正FW筑紫A圆 简 E")
 end)
+
+
+
 hl.bind("F9", hl.dsp.exec_cmd("/home/busyo/.config/niri/script/kill_to_save_rec.sh"))
 
 -- ocr
 hl.bind(mainAlt .. " + 1", function()
-    shot_without_dynamic_cursor("~/.config/hypr/scripts/shot/ocr.sh")
+    Shot_without_dynamic_cursor("~/.config/hypr/scripts/shot/ocr.sh")
 end)
 hl.bind(mainAlt .. " + 2", function()
-    shot_without_dynamic_cursor("~/.config/hypr/scripts/shot/qrcode.sh")
+    Shot_without_dynamic_cursor("~/.config/hypr/scripts/shot/qrcode.sh")
 end)
 
 -- test
 hl.bind(mainAlt .. " + 3", function()
     local window = hl.get_active_window()
+    local monitor = hl.get_active_monitor()
     hl.exec_cmd("notify-send 'Active Window Info' 'Class: " ..
-        (window.class or "N/A") .. "\nTitle: " .. (window.title or "N/A") .. "'")
+        (monitor.position.x + monitor.width / monitor.scale or "N/A") .. "\nTitle: " .. (window.at.x or "N/A") .. "'")
 end)
 
-hl.bind(mainAlt .. " + 4", function()
-    shot.get_window()
-end)
+hl.bind(mainCtrl .. " + 4", hl.dsp.layout("move -50"))
 
 -- hl.bind("mouse:272", workspace.drag_to_move, { mouse = true })
 
 -- sub function
-function delay(func, delay)
+function Delay(func, delay)
     local demoTimer = hl.timer(function()
         func()
     end, { timeout = delay, type = "oneshot" })
@@ -132,14 +135,14 @@ function delay(func, delay)
     demoTimer:set_enabled(true)
 end
 
-function shot_without_dynamic_cursor(cmd)
+function Shot_without_dynamic_cursor(cmd)
     hl.config { plugin = { dynamic_cursors = { enabled = false } } }
     local pos = hl.get_cursor_pos()
     hl.dispatch(hl.dsp.cursor.move(pos))
 
     hl.exec_cmd(cmd)
 
-    delay(function()
+    Delay(function()
         hl.config { plugin = { dynamic_cursors = { enabled = true } } }
     end, 50)
 end

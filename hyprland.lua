@@ -129,10 +129,10 @@ hl.config({
 -- See https://wiki.hypr.land/Configuring/Layouts/Scrolling-Layout/ for more
 hl.config({
     scrolling = {
-        fullscreen_on_one_column = true,
+        fullscreen_on_one_column = false,
         wrap_focus = false,
         wrap_swapcol = false,
-        follow_min_visible = 0.6,
+        follow_min_visible = 1.0,
     },
 })
 
@@ -214,3 +214,14 @@ require("animation")
 -- workspace.on_window_open()
 
 require("dms.cursor")
+
+-- event listener
+
+hl.on("window.active", function(w)
+    local mon = hl.get_active_monitor()
+    if w.at.x < mon.position.x then
+        hl.dispatch(hl.dsp.layout("focus r"))
+    elseif w.at.x + w.size.x > mon.position.x + mon.width / mon.scale then
+        hl.dispatch(hl.dsp.layout("focus l"))
+    end
+end)

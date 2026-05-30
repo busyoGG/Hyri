@@ -40,26 +40,43 @@ local function shot_without_dynamic_cursor(cmd)
     end, 50)
 end
 
-function shot.get_window()
-    hl.exec_cmd("slurp -p > /tmp/slurp_result.txt")
+function shot.pick_window()
+    hl.notification.create({
+        text = "鼠标左键选择窗口截图，右键退出",
+        timeout = 2000,
+        color = "#ffffff"
+    })
 
-    local timer = hl.timer(function()
-        local f = io.open("/tmp/slurp_result.txt", "r")
-        local x, y
-        if f then
-            local result = f:read("*a")
-            f:close()
-            if result and result ~= "" then
-                -- 坐标格式："x y"
-                x, y = result:match("(%d+),(%d+)%s+(%d+)x(%d+)")
-                if x and y then
-                    hl.exec_cmd("notify-send 'Screenshot' 'x,y " .. x .. "," .. y .. "'")
-                end
-                timer:set_enabled(false)
-            end
+    hl.bind(
+        "mouse:273",
+        function()
+            hl.unbind("mouse:272")
+            hl.unbind("mouse:273")
         end
-    end, { timeout = 100, type = "repeat" })
-    timer:set_enabled(true)
+    )
+
+    hl.bind(
+        "mouse:272",
+        function()
+            local cur_window = hl.get_active_window()
+            local border = hl.get_config("general.border_size")
+            -- hl.exec_cmd("notify-send 'Screenshot' 'x,y " .. cur_window.size.x .. "'")
+            local cmd = string.format(
+                "grim -l 2 -g '%d,%d %dx%d' %s",
+                cur_window.at.x - border,
+                cur_window.at.y - border,
+                cur_window.size.x + border * 2,
+                cur_window.size.y + border * 2,
+                get_screenshot_path()
+            )
+            -- hl.exec_cmd("notify-send 'Screenshot' 'cmd = " .. cmd .. "'")
+            delay(function()
+                shot_without_dynamic_cursor(cmd)
+            end, 100)
+            hl.unbind("mouse:272")
+            hl.unbind("mouse:273")
+        end
+    )
 end
 
 function shot.active_shot()
