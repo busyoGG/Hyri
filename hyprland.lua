@@ -218,6 +218,9 @@ require("dms.cursor")
 -- event listener
 
 hl.on("window.active", function(w)
+    if w.at == nil then
+        return
+    end
     local mon = hl.get_active_monitor()
     if w.at.x < mon.position.x then
         hl.dispatch(hl.dsp.layout("focus r"))
