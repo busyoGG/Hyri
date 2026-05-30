@@ -95,7 +95,7 @@ function M.window_on_drag()
         --     ratio = ratio_for_windows[active_window.pid]
         -- else
         local height = get_height_ratio(active_window)
-        hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window height ratio: " .. height .. "' --expire-time=1000"))
+        -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window height ratio: " .. height .. "' --expire-time=1000"))
         if get_height_ratio(active_window) >= 0.99 then
             ratio_for_windows = get_width_ratio(active_window)
         else
@@ -103,7 +103,7 @@ function M.window_on_drag()
         end
     end
 
-    hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
+    -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
 
     hl.dispatch(hl.dsp.window.drag())
 end
@@ -122,7 +122,7 @@ function M.window_on_put()
     end
 
     hl.dispatch(hl.dsp.layout("colresize " .. ratio_for_windows))
-    hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
+    -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
     ratio_for_windows = nil
 end
 
