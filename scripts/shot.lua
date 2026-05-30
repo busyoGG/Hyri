@@ -58,21 +58,7 @@ function shot.pick_window()
     hl.bind(
         "mouse:272",
         function()
-            local cur_window = hl.get_active_window()
-            local border = hl.get_config("general.border_size")
-            -- hl.exec_cmd("notify-send 'Screenshot' 'x,y " .. cur_window.size.x .. "'")
-            local cmd = string.format(
-                "grim -l 2 -g '%d,%d %dx%d' %s",
-                cur_window.at.x - border,
-                cur_window.at.y - border,
-                cur_window.size.x + border * 2,
-                cur_window.size.y + border * 2,
-                get_screenshot_path()
-            )
-            -- hl.exec_cmd("notify-send 'Screenshot' 'cmd = " .. cmd .. "'")
-            delay(function()
-                shot_without_dynamic_cursor(cmd)
-            end, 100)
+            delay(shot.active_shot, 100)
             hl.unbind("mouse:272")
             hl.unbind("mouse:273")
         end
@@ -83,13 +69,14 @@ function shot.active_shot()
     local window = hl.get_active_window()
     local pos = window.at
     local size = window.size
+    local border = hl.get_config("general.border_size")
 
     local cmd = string.format(
         "grim -l 2 -g '%d,%d %dx%d' %s",
-        pos.x,
-        pos.y,
-        size.x,
-        size.y,
+        pos.x - border,
+        pos.y - border,
+        size.x + border * 2,
+        size.y + border * 2,
         get_screenshot_path()
     )
 

@@ -20,7 +20,7 @@ local function get_height_ratio(cur)
     local gaps_out = hl.get_config("general.gaps_out")
     local border_size = hl.get_config("general.border_size")
 
-    local max_height = mon.size.height / mon.scale - gaps_out.top * 2 - border_size * 2
+    local max_height = mon.height / mon.scale - gaps_out.top * 2 - border_size * 2 - mon.reserved.top
     return cur.size.y / max_height
 end
 
@@ -91,9 +91,11 @@ local ratio_for_windows
 
 function M.window_on_drag()
     local active_window = hl.get_active_window()
-    if not ratio_for_windows then
+    if ratio_for_windows == nil then
         --     ratio = ratio_for_windows[active_window.pid]
         -- else
+        local height = get_height_ratio(active_window)
+        hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window height ratio: " .. height .. "' --expire-time=1000"))
         if get_height_ratio(active_window) >= 0.99 then
             ratio_for_windows = get_width_ratio(active_window)
         else
@@ -101,7 +103,7 @@ function M.window_on_drag()
         end
     end
 
-    -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
+    hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
 
     hl.dispatch(hl.dsp.window.drag())
 end
@@ -120,6 +122,7 @@ function M.window_on_put()
     end
 
     hl.dispatch(hl.dsp.layout("colresize " .. ratio_for_windows))
+    hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
     ratio_for_windows = nil
 end
 
