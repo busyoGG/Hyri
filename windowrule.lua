@@ -62,6 +62,7 @@ rule("opacity-0.8", matches(
 })
 
 rule("opacity-0.9", matches(
+    -- "vivaldi-stable",
     "obsidian",
     "discord",
     "kate",
@@ -109,6 +110,7 @@ rule("mihoyo-launcher", matches(
 ), {
     render_unfocused = true,
     fullscreen = false,
+    fullscreen_state = 0,
     confine_pointer = false,
 })
 

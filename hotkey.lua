@@ -20,11 +20,17 @@ hl.bind(mainMod .. " + M",
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 
 -- controls
-hl.bind(mainMod .. " + left", hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + left", hl.dsp.layout("focus l"))
+hl.bind(mainMod .. " + right", hl.dsp.layout("focus r"))
 
 hl.bind(mainMod .. " + mouse_down", hl.dsp.layout("focus r"))
 hl.bind(mainMod .. " + mouse_up", hl.dsp.layout("focus l"))
+
+hl.bind(mainMod .. " +  mouse:274", function()
+    if hl.plugin and hl.plugin.scrolloverview then
+        hl.plugin.scrolloverview.overview("toggle")
+    end
+end)
 
 hl.bind(mainAlt .. " + mouse_down", function()
     workspace.change_workspace(false)
@@ -45,8 +51,9 @@ end)
 
 hl.bind(mainMod .. " + F", workspace.max_width)
 hl.bind(mainCtrl .. " + " .. mainShift .. " + F", hl.dsp.window.fullscreen({ action = "toggle" }))
+hl.bind(mainCtrl .. " + " .. mainAlt .. " + F", hl.dsp.layout("fit expand"))
+-- hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("notify-send 'MOD' 'You pressed the MOD key!'"))
 -- hl.bind(mainCtrl .. "+" .. mainShift .. " + F", hl.dsp.layout("fit visible"))
-
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
 for i = 1, 10 do
@@ -60,6 +67,7 @@ hl.bind(mainMod .. " + mouse:272", workspace.window_on_drag, { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 hl.bind(mainMod .. " + mouse:272", workspace.window_on_put, { release = true })
+hl.bind(mainMod .. " + mouse:273", workspace.resize_window_done, { release = true })
 
 -- Laptop multimedia keys for volume and LCD brightness
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"),
@@ -122,9 +130,13 @@ hl.bind(mainAlt .. " + 3", function()
         (monitor.position.x + monitor.width / monitor.scale or "N/A") .. "\nTitle: " .. (window.at.x or "N/A") .. "'")
 end)
 
-hl.bind(mainCtrl .. " + 4", hl.dsp.layout("move -50"))
+-- hl.bind(mainCtrl .. " + 4", function()
+--     if hl.plugin and hl.plugin.scrolloverview then
+--         hl.plugin.scrolloverview.overview("toggle")
+--     end
+-- end)
 
--- hl.bind("mouse:272", workspace.drag_to_move, { mouse = true })
+-- hl.bind("mouse:272", workspace.drag_to_move, { non_consuming = true })
 
 -- sub function
 function Delay(func, delay)
@@ -146,3 +158,7 @@ function Shot_without_dynamic_cursor(cmd)
         hl.config { plugin = { dynamic_cursors = { enabled = true } } }
     end, 50)
 end
+
+-- listener
+
+workspace.on_window_open()

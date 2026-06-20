@@ -2,6 +2,9 @@ local M = {}
 
 local cursor_pos
 
+local windows_width = {}
+local windows_states = {}
+
 ------------------------
 ---- local function ----
 ------------------------
@@ -87,28 +90,18 @@ function M.move_window_to_workspace(prev)
     end
 end
 
-local ratio_for_windows
-
 function M.window_on_drag()
-    local active_window = hl.get_active_window()
-    if ratio_for_windows == nil then
-        --     ratio = ratio_for_windows[active_window.pid]
-        -- else
-        local height = get_height_ratio(active_window)
-        -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window height ratio: " .. height .. "' --expire-time=1000"))
-        if get_height_ratio(active_window) >= 0.99 then
-            ratio_for_windows = get_width_ratio(active_window)
-        else
-            ratio_for_windows = 0.5
-        end
-    end
-
     -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
-
+    -- hl.exec_cmd("ydotool key 125:1")
+    if windows_width[hl.get_active_window().pid] == nil then
+        M.update_window_width(hl.get_active_window())
+        M.update_window_state(hl.get_active_window(), { max_width = windows_width[hl.get_active_window().pid] >= 1.0 })
+    end
     hl.dispatch(hl.dsp.window.drag())
 end
 
 function M.window_on_put()
+    -- hl.exec_cmd("ydotool key 125:0")
     local cursor_pos = hl.get_cursor_pos()
     local active_window = hl.get_active_window()
 
@@ -121,26 +114,24 @@ function M.window_on_put()
         hl.dispatch(hl.dsp.layout("promote"))
     end
 
-    hl.dispatch(hl.dsp.layout("colresize " .. ratio_for_windows))
+    if get_height_ratio(active_window) >= 1.0 then
+        if windows_states[active_window.pid].max_width then
+            hl.dispatch(hl.dsp.layout("colresize 1.0"))
+        else
+            hl.dispatch(hl.dsp.layout("colresize " .. windows_width[active_window.pid]))
+        end
+    end
     -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
-    ratio_for_windows = nil
 end
 
-local width_for_windows = {}
 function M.max_width()
     local cur = hl.get_active_window()
-    if width_for_windows[cur.pid] then
-        hl.dispatch(hl.dsp.layout("colresize " .. width_for_windows[cur.pid]))
-        width_for_windows[cur.pid] = nil
+    if windows_states[cur.pid].max_width then
+        hl.dispatch(hl.dsp.layout("colresize " .. windows_width[cur.pid]))
+        M.update_window_state(cur, { max_width = false })
     else
-        local cur_ratio = get_width_ratio(cur)
-
-        width_for_windows[cur.pid] = cur_ratio
-        if cur_ratio == 1.0 then
-            hl.dispatch(hl.dsp.layout("colresize 0.5"))
-        else
-            hl.dispatch(hl.dsp.layout("colresize 1.0"))
-        end
+        hl.dispatch(hl.dsp.layout("colresize 1.0"))
+        M.update_window_state(cur, { max_width = true })
     end
 end
 
@@ -148,13 +139,32 @@ function M.drag_to_move()
     hl.exec_cmd("notify-send 'Drag to move' --expire-time=1000")
 end
 
--- function M.on_window_open()
---     hl.on("window.open", function(w)
---         local workspace = hl.get_active_workspace()
---         if workspace.windows <= 1 then
---             M.max_width()
---         end
---     end)
--- end
+function M.resize_window_done()
+    local cur = hl.get_active_window()
+    M.update_window_width(cur)
+    M.update_window_state(cur, { max_width = windows_width[cur.pid] >= 1.0 })
+end
+
+function M.on_window_open()
+    hl.on("window.open", function(w)
+        M.update_window_width(w)
+        M.update_window_state(w, { max_width = windows_width[w.pid] >= 1.0})
+    end)
+end
+
+-- Update the width of the window when it is opened
+function M.update_window_width(w)
+    local width = get_width_ratio(w)
+    -- if max width is 1.0, set it to 0.5 to avoid issues with max_width function
+    if width >= 1.0 then
+        width = 0.5
+    end
+
+    windows_width[w.pid] = width
+end
+
+function M.update_window_state(w, state)
+    windows_states[w.pid] = state
+end
 
 return M
