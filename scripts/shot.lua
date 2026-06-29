@@ -28,16 +28,21 @@ local function set_mark()
 end
 
 local function shot_without_dynamic_cursor(cmd)
-    hl.config { plugin = { dynamic_cursors = { enabled = false } } }
+    if hl.plugin.dynamic_cursors then
+        hl.config { plugin = { dynamic_cursors = { enabled = false } } }
+    end
+
     local pos = hl.get_cursor_pos()
     hl.dispatch(hl.dsp.cursor.move(pos))
 
     hl.exec_cmd(cmd)
     set_mark()
 
-    delay(function()
-        hl.config { plugin = { dynamic_cursors = { enabled = true } } }
-    end, 50)
+    if hl.plugin.dynamic_cursors then
+        delay(function()
+            hl.config { plugin = { dynamic_cursors = { enabled = true } } }
+        end, 50)
+    end
 end
 
 function shot.pick_window()

@@ -22,8 +22,10 @@ hl.on("hyprland.start", function()
 
     -- apps
     Exec("dms run", 1)
-    Exec("XCURSOR_SIZE=64 gtk-launch steam", 5)
-    Exec("gtk-launch sparkle", 5)
+    Exec("gtk-launch sparkle", 6)
+    
+    Exec("XCURSOR_SIZE=64 gtk-launch steam", 7)
+    -- Exec("gtk-launch com.follow.clash", 5)
     Exec("gtk-launch discord", 7)
     Exec("gtk-launch qq", 7)
     Exec("gtk-launch org.telegram.desktop.desktop", 7)

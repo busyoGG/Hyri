@@ -102,17 +102,21 @@ end
 
 function M.window_on_put()
     -- hl.exec_cmd("ydotool key 125:0")
-    local cursor_pos = hl.get_cursor_pos()
+    -- local cursor_pos = hl.get_cursor_pos()
     local active_window = hl.get_active_window()
 
-    local bound = { active_window.at.x + active_window.size.x * 0.25, active_window.at.x + active_window.size.x * 0.75 }
+    ---- upstream fixed ----
+    
+    -- local bound = { active_window.at.x + active_window.size.x * 0.25, active_window.at.x + active_window.size.x * 0.75 }
 
-    if cursor_pos.x < bound[1] then
-        hl.dispatch(hl.dsp.layout("promote"))
-        hl.dispatch(hl.dsp.layout("swapcol l"))
-    elseif cursor_pos.x > bound[2] then
-        hl.dispatch(hl.dsp.layout("promote"))
-    end
+    -- if cursor_pos.x < bound[1] then
+    --     hl.dispatch(hl.dsp.layout("promote"))
+    --     hl.dispatch(hl.dsp.layout("swapcol l"))
+    -- elseif cursor_pos.x > bound[2] then
+    --     hl.dispatch(hl.dsp.layout("promote"))
+    -- end
+
+    ---- upstream fixed ----
 
     if get_height_ratio(active_window) >= 1.0 then
         if windows_states[active_window.pid].max_width then
@@ -121,6 +125,7 @@ function M.window_on_put()
             hl.dispatch(hl.dsp.layout("colresize " .. windows_width[active_window.pid]))
         end
     end
+
     -- hl.dispatch(hl.dsp.exec_cmd("notify-send 'active window ratio: " .. ratio_for_windows .. "' --expire-time=1000"))
 end
 
@@ -147,20 +152,23 @@ end
 
 function M.on_window_open()
     hl.on("window.open", function(w)
-        M.update_window_width(w)
-        M.update_window_state(w, { max_width = windows_width[w.pid] >= 1.0})
+        local start_as_full_width = M.update_window_width(w)
+        M.update_window_state(w, { max_width = start_as_full_width and start_as_full_width or windows_width[w.pid] >= 1.0 })
     end)
 end
 
 -- Update the width of the window when it is opened
 function M.update_window_width(w)
     local width = get_width_ratio(w)
+    local start_as_full_width = false
     -- if max width is 1.0, set it to 0.5 to avoid issues with max_width function
     if width >= 1.0 then
         width = 0.5
+        start_as_full_width = true
     end
 
     windows_width[w.pid] = width
+    return start_as_full_width
 end
 
 function M.update_window_state(w, state)

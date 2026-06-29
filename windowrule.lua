@@ -69,7 +69,8 @@ rule("opacity-0.9", matches(
     "QQ",
     "dolphin",
     "btrfs-assistant",
-    "Element"
+    "Element",
+    "com.danklinux.dms"
 ), {
     opacity = 0.9,
 })
