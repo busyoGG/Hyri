@@ -2,6 +2,9 @@ local shot = {}
 
 local TPATH = "/tmp"
 
+local vaapi = "-c h264_vaapi -d /dev/dri/renderD128"
+local color = "-p color_range=2 -p colorspace=bt709 -p color_trc=bt709 -p color_primaries=bt709"
+
 local function delay(func, delay)
     local demoTimer = hl.timer(function()
         func()
@@ -186,6 +189,46 @@ function shot.edit(font_family)
             end
         end
     end
+end
+
+local function get_recording_path()
+    local videos_dir = io.popen("xdg-user-dir VIDEOS"):read("*l")
+    local dir = videos_dir .. "/ScreenRec"
+
+    hl.exec_cmd("mkdir -p " .. string.format("%q", dir))
+
+    local file = dir .. "/" .. os.date("%Y-%m-%d_%H-%M-%S") .. ".mp4"
+    return file
+end
+
+function shot.rec()
+    local output = hl.get_active_monitor().name
+    local file = get_recording_path()
+    local cmd = string.format("wf-recorder %s -f %s %s -o %s", color, file, vaapi, output)
+    hl.exec_cmd("notify-send 'Fullscreen Recording Started' 'Output: " .. output .. "'")
+    hl.exec_cmd(cmd)
+end
+
+function shot.active_rec()
+    local window = hl.get_active_window()
+    local pos = window.at
+    local size = window.size
+    local border = hl.get_config("general.border_size")
+
+    local file = get_recording_path()
+
+    local geo = string.format("%d,%d %dx%d", pos.x - border, pos.y - border, size.x + border * 2, size.y + border * 2)
+    local cmd = string.format("wf-recorder -g \"%s\" %s -f %s %s", geo, color, file, vaapi)
+
+    hl.exec_cmd("notify-send 'Active Window Recording Started' 'Recording window: " .. window.title .. "'")
+    hl.exec_cmd(cmd)
+end
+
+function shot.area_rec()
+    local file = get_recording_path()
+    local cmd = string.format("wf-recorder -g \"$(slurp)\" %s -f %s %s", color, file, vaapi)
+    hl.exec_cmd("notify-send 'Area Recording Started' ")
+    hl.exec_cmd(cmd)
 end
 
 return shot

@@ -110,6 +110,10 @@ hl.bind(mainMod .. " + E", function()
     shot.edit("方正FW筑紫A圆 简 E")
 end)
 
+-- rec
+hl.bind(mainAlt .. " + XF86Tools", shot.active_rec)
+hl.bind("XF86Tools", shot.rec)
+hl.bind(mainCtrl .. " + " .. mainAlt .. " + XF86Tools", shot.area_rec)
 
 
 hl.bind("F9", hl.dsp.exec_cmd("/home/busyo/.config/niri/script/kill_to_save_rec.sh"))
