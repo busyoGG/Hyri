@@ -92,8 +92,9 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true 
 hl.bind(mainCtrl .. " + space", hl.dsp.exec_cmd("~/文档/EnhanceScript/fcitx5-input-switcher.sh"))
 
 -- dms
-hl.bind(mainAlt .. " + space", hl.dsp.exec_cmd("dms ipc call spotlight toggle"))
-hl.bind("XF86Calculator", hl.dsp.exec_cmd("dms ipc call notepad toggle"))
+-- hl.bind(mainAlt .. " + space", hl.dsp.exec_cmd("dms ipc call spotlight toggle"))
+-- hl.bind("XF86Calculator", hl.dsp.exec_cmd("dms ipc call notepad toggle"))
+hl.bind(mainAlt .. " + space", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"))
 
 -- shot
 hl.bind("print", function()
@@ -135,9 +136,10 @@ hl.bind(mainAlt .. " + 3", function()
 end)
 
 -- hl.bind(mainCtrl .. " + 4", function()
---     if hl.plugin and hl.plugin.scrolloverview then
---         hl.plugin.scrolloverview.overview("toggle")
---     end
+--     -- if hl.plugin and hl.plugin.scrolloverview then
+--     --     hl.plugin.scrolloverview.overview("toggle")
+--     -- end
+--     hl.dispatch(hl.dsp.window.fullscreen({ action = "toggle", layout_aware =false}))
 -- end)
 
 -- hl.bind("mouse:272", workspace.drag_to_move, { non_consuming = true })

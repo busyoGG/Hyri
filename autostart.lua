@@ -21,7 +21,8 @@ hl.on("hyprland.start", function()
     -- Exec("nohup xwayland-satellite > /dev/null 2>&1 &")
 
     -- apps
-    Exec("dms run", 1)
+    -- Exec("dms run", 1)
+    Exec("noctalia", 1)
     Exec("gtk-launch sparkle", 6)
     
     Exec("XCURSOR_SIZE=64 gtk-launch steam", 7)
