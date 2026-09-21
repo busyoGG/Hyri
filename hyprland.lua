@@ -150,6 +150,8 @@ hl.config({
         disable_hyprland_logo   = false, -- If true disables the random hyprland logo / anime girl background. :(
         render_unfocused_fps    = 60,
         focus_on_activate       = true,
+        mouse_move_enables_dpms = false,
+        key_press_enables_dpms = true,
         -- on_focus_under_fullscreen = 1,
     },
 })
@@ -239,7 +241,7 @@ require("dms.cursor")
 -- event listener
 
 hl.on("window.active", function(w)
-    if w.at == nil then
+    if w == nil or w.at == nil then
         return
     end
     local mon = hl.get_active_monitor()

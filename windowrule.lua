@@ -51,7 +51,16 @@ rule("fix-xwayland-drags", {
         pin        = false,
     },
 }, {
-    no_focus = true,
+    no_focus = true
+})
+
+rule("fix-xwayland-drags", {
+    {
+        class      = "^$",
+        title      = "^$",
+    },
+}, {
+    fullscreen = false
 })
 
 rule("opacity-0.8", matches(
@@ -65,7 +74,7 @@ rule("opacity-0.9", matches(
     -- "vivaldi-stable",
     "obsidian",
     "discord",
-    "kate",
+    "org.kde.kate",
     "QQ",
     "dolphin",
     "btrfs-assistant",
@@ -106,13 +115,12 @@ rule("open-on-DP-2", matches(
     monitor = "DP-2",
 })
 
+
 rule("mihoyo-launcher", matches(
-    { class = "steam_app_default", title = "米哈游启动器" }
+    "org.kde.kate"
 ), {
-    render_unfocused = true,
     fullscreen = false,
     fullscreen_state = 0,
-    confine_pointer = false,
 })
 
 rule("games", matches(
@@ -121,11 +129,11 @@ rule("games", matches(
     "yuanshen.exe"
 ), {
     render_unfocused = true,
-    sync_fullscreen = true,
     fullscreen = true,
     fullscreen_state = 2,
     confine_pointer = false,
     focus_on_activate = false,
+    suppress_event = "fullscreen maximize fullscreenoutput activate activatefocus x11configurerequest"
 })
 
 rule("no-floating", matches(
@@ -133,6 +141,7 @@ rule("no-floating", matches(
 ), {
     float = false,
 })
+
 
 -- 注意：复合条件 { class = "QQ", title = "xxx" } 会为每个 title 创建独立的规则
 rule("floating", matches(
@@ -145,4 +154,13 @@ rule("floating", matches(
     { class = "steam", title = "好友列表" }
 ), {
     float = true,
+})
+
+rule("mihoyo-launcher", matches(
+    { class = "steam_app_default", title = "米哈游启动器" }
+), {
+    render_unfocused = true,
+    fullscreen = false,
+    fullscreen_state = 0,
+    confine_pointer = false,
 })

@@ -93,22 +93,37 @@ end
 
 function M.window_on_drag()
     local active_window = hl.get_active_window()
-    if windows_width[active_window.pid] == nil then
-        M.update_window_width(active_window)
-        M.update_window_state(active_window, { max_width = windows_width[active_window.pid] >= 1.0 })
+    -- mouse 拖拽绑定会在按下和松开时各调用一次（松开是 drag dispatch 的 request_release 跟随）。
+    -- 只在按下时、且窗口独占整列（满高）时才更新宽度记忆：
+    -- 满高说明窗口是独立列，当前宽度就是它自己的真实宽度；
+    -- 被并入其他列时（半高）宽度是所在列的，保留原有记忆，取出时才能恢复调整过的宽度。
+    -- 松开时跳过，避免把布局放置后的新宽度覆盖进去。
+    if not M.drag_in_progress then
+        if get_height_ratio(active_window) >= 1.0 then
+            M.update_window_state(active_window, { max_width = M.update_window_width(active_window) })
+        end
+        M.drag_in_progress = true
+    else
+        M.drag_in_progress = false
     end
     hl.dispatch(hl.dsp.window.drag())
 end
 
 function M.window_on_put()
+    -- 手势结束，复位拖拽标记
+    M.drag_in_progress = false
+
     local active_window = hl.get_active_window()
 
+    -- 放下时恢复拖拽开始时记录的宽度比例（拖拽期间窗口尺寸不变，该值即真实宽度）。
+    -- 兜底：正常路径 window_on_drag 已记录，这里仅在状态缺失时重新测量
     if windows_width[active_window.pid] == nil then
-        M.update_window_width(active_window)
-        M.update_window_state(active_window, { max_width = windows_width[active_window.pid] >= 1.0 })
+        M.update_window_state(active_window, { max_width = M.update_window_width(active_window) })
     end
 
-    if get_height_ratio(active_window) >= 1.0 then
+    local hratio = get_height_ratio(active_window)
+
+    if hratio >= 1.0 then
         if windows_states[active_window.pid] and windows_states[active_window.pid].max_width then
             hl.dispatch(hl.dsp.layout("colresize 1.0"))
         else
@@ -121,8 +136,7 @@ function M.max_width()
     local cur = hl.get_active_window()
 
     if windows_width[cur.pid] == nil then
-        M.update_window_width(cur)
-        M.update_window_state(cur, { max_width = windows_width[cur.pid] >= 1.0 })
+        M.update_window_state(cur, { max_width = M.update_window_width(cur) })
     end
 
     if windows_states[cur.pid] and windows_states[cur.pid].max_width then
@@ -140,8 +154,7 @@ end
 
 function M.resize_window_done()
     local cur = hl.get_active_window()
-    M.update_window_width(cur)
-    M.update_window_state(cur, { max_width = windows_width[cur.pid] >= 1.0 })
+    M.update_window_state(cur, { max_width = M.update_window_width(cur) })
 end
 
 function M.on_window_open()

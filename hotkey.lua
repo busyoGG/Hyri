@@ -13,7 +13,7 @@ local mainShift = "SHIFT"
 -- Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
 
 -- general
-hl.bind(mainCtrl .. " + Q", hl.dsp.exec_cmd("ghostty"))
+hl.bind(mainCtrl .. " + Q", hl.dsp.exec_cmd("kitty"))
 hl.bind(mainAlt .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + M",
     hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
@@ -93,23 +93,31 @@ hl.bind(mainCtrl .. " + space", hl.dsp.exec_cmd("~/文档/EnhanceScript/fcitx5-i
 
 -- dms
 -- hl.bind(mainAlt .. " + space", hl.dsp.exec_cmd("dms ipc call spotlight toggle"))
--- hl.bind("XF86Calculator", hl.dsp.exec_cmd("dms ipc call notepad toggle"))
 hl.bind(mainAlt .. " + space", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"))
+-- hl.bind("XF86Calculator", hl.dsp.exec_cmd("dms ipc call notepad toggle"))
+-- hl.bind(mainAlt .. " + space", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"))
 
 -- shot
-hl.bind("print", function()
-    shot.screen_shot(false)
-end)
-hl.bind(mainCtrl .. " + print", function()
-    shot.screen_shot(true)
-end)
-hl.bind(mainCtrl .. " + " .. mainAlt .. " + A", shot.area_shot)
-hl.bind(mainAlt .. " + print", shot.active_shot)
+-- hl.bind("print", function()
+--     shot.screen_shot(false)
+-- end)
+hl.bind("print", hl.dsp.exec_cmd("vshot monitor --output '/tmp/vshot-%Y-%m-%d_%H-%M-%S.png'"))
+-- hl.bind(mainCtrl .. " + print", function()
+--     shot.screen_shot(true)
+-- end)
+hl.bind(mainCtrl .. " + print", hl.dsp.exec_cmd("vshot all --output '/tmp/vshot-%Y-%m-%d_%H-%M-%S.png'"))
+-- hl.bind(mainCtrl .. " + " .. mainAlt .. " + A", shot.area_shot)
+hl.bind(mainCtrl .. " + " .. mainAlt .. " + A", hl.dsp.exec_cmd("vshot region --output '/tmp/vshot-%Y-%m-%d_%H-%M-%S.png'"))
+-- hl.bind(mainAlt .. " + print", shot.active_shot)
+hl.bind(mainAlt .. " + print", hl.dsp.exec_cmd("vshot window active --output '/tmp/vshot-%Y-%m-%d_%H-%M-%S.png'"))
 hl.bind(mainShift .. " + print", shot.pick_window)
 
-hl.bind(mainMod .. " + E", function()
-    shot.edit("方正FW筑紫A圆 简 E")
-end)
+hl.bind("F2", hl.dsp.exec_cmd("vshot pin --clipboard"))
+hl.bind(mainShift .. " + F2", hl.dsp.exec_cmd("vshot pin --toggle"))
+
+-- hl.bind(mainMod .. " + E", function()
+--     shot.edit("方正FW筑紫A圆 简 E")
+-- end)
 
 -- rec
 hl.bind(mainAlt .. " + XF86Tools", shot.active_rec)
@@ -129,10 +137,11 @@ end)
 
 -- test
 hl.bind(mainAlt .. " + 3", function()
-    local window = hl.get_active_window()
-    local monitor = hl.get_active_monitor()
-    hl.exec_cmd("notify-send 'Active Window Info' 'Class: " ..
-        (monitor.position.x + monitor.width / monitor.scale or "N/A") .. "\nTitle: " .. (window.at.x or "N/A") .. "'")
+    -- local window = hl.get_active_window()
+    -- local monitor = hl.get_active_monitor()
+    -- hl.exec_cmd("notify-send 'Active Window Info' 'Class: " ..
+    --     (monitor.position.x + monitor.width / monitor.scale or "N/A") .. "\nTitle: " .. (window.at.x or "N/A") .. "'")
+    hl.dispatch(hl.dsp.layout("move -200"))
 end)
 
 -- hl.bind(mainCtrl .. " + 4", function()
